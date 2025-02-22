@@ -6,6 +6,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { View, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MysticOverlay } from '@/components/MysticOverlay';
@@ -31,15 +33,27 @@ const customLightTheme = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
+  const router = useRouter();
+
+  const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      checkAuth();
     }
   }, [loaded]);
+
+  const checkAuth = async () => {
+    const token = await AsyncStorage.getItem('access_token');
+    if (!token) {
+      router.replace('/auth/login');
+    } else {
+      router.replace('/(tabs)');
+    }
+  };
 
   if (!loaded) {
     return null;
@@ -52,17 +66,18 @@ export default function RootLayout() {
           <MysticOverlay />
         </View>
         <View style={styles.contentContainer}>
-          <Stack screenOptions={{
-            headerStyle: {
-              backgroundColor: 'transparent',
-            },
-            headerTransparent: true,
-            contentStyle: {
-              backgroundColor: 'transparent',
-            },
-          }}>
+          <Stack
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: 'transparent',
+              },
+              headerTransparent: true,
+              contentStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+              },
+            }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="auth" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </View>
