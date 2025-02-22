@@ -73,7 +73,7 @@ export default function RootLayout() {
               },
               headerTransparent: true,
               contentStyle: {
-                backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+                backgroundColor: colorScheme === 'dark' ? '' : '',
               },
             }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

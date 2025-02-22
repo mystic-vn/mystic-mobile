@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -84,59 +84,65 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <LinearGradient colors={['#4a2b7e', '#2d1b4f']} style={styles.header}>
-        <ThemedView style={styles.headerContent}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={24} color="#fff" />
+    <View style={styles.container}>
+      {/* Header cố định */}
+      <View style={styles.stickyHeader}>
+        <LinearGradient colors={['#4a2b7e', '#2d1b4f']} style={styles.header}>
+          <ThemedView style={styles.headerContent}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <IconSymbol name="chevron.left" size={24} color="#fff" />
+            </TouchableOpacity>
+            <ThemedText style={styles.title}>Thông tin cá nhân</ThemedText>
+          </ThemedView>
+        </LinearGradient>
+      </View>
+
+      {/* Phần nội dung có thể cuộn */}
+      <ScrollView style={styles.scrollContent}>
+        <ThemedView style={styles.formContainer}>
+          {error ? (
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
+          ) : null}
+
+          <ThemedView style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Email</ThemedText>
+            <ThemedTextInput
+              value={user?.email}
+              editable={false}
+              style={[styles.input, styles.disabledInput]}
+            />
+          </ThemedView>
+
+          <ThemedView style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Họ</ThemedText>
+            <ThemedTextInput
+              value={formData.lastName}
+              onChangeText={(value) => handleChange('lastName', value)}
+              style={styles.input}
+            />
+          </ThemedView>
+
+          <ThemedView style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Tên</ThemedText>
+            <ThemedTextInput
+              value={formData.firstName}
+              onChangeText={(value) => handleChange('firstName', value)}
+              style={styles.input}
+            />
+          </ThemedView>
+
+          <TouchableOpacity
+            style={[styles.saveButton, saving && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            <ThemedText style={styles.saveButtonText}>
+              {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+            </ThemedText>
           </TouchableOpacity>
-          <ThemedText style={styles.title}>Thông tin cá nhân</ThemedText>
         </ThemedView>
-      </LinearGradient>
-
-      <ThemedView style={styles.formContainer}>
-        {error ? (
-          <ThemedText style={styles.errorText}>{error}</ThemedText>
-        ) : null}
-
-        <ThemedView style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Email</ThemedText>
-          <ThemedTextInput
-            value={user?.email}
-            editable={false}
-            style={[styles.input, styles.disabledInput]}
-          />
-        </ThemedView>
-
-        <ThemedView style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Họ</ThemedText>
-          <ThemedTextInput
-            value={formData.lastName}
-            onChangeText={(value) => handleChange('lastName', value)}
-            style={styles.input}
-          />
-        </ThemedView>
-
-        <ThemedView style={styles.inputGroup}>
-          <ThemedText style={styles.label}>Tên</ThemedText>
-          <ThemedTextInput
-            value={formData.firstName}
-            onChangeText={(value) => handleChange('firstName', value)}
-            style={styles.input}
-          />
-        </ThemedView>
-
-        <TouchableOpacity
-          style={[styles.saveButton, saving && styles.buttonDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <ThemedText style={styles.saveButtonText}>
-            {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
-          </ThemedText>
-        </TouchableOpacity>
-      </ThemedView>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -149,6 +155,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  stickyHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
   },
   header: {
     padding: 20,
@@ -165,6 +178,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    lineHeight: 30,
+  },
+  scrollContent: {
+    flex: 1,
+    marginTop: 120, // Để tránh bị che bởi header
   },
   formContainer: {
     padding: 20,

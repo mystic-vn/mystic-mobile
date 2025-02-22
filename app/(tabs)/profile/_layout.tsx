@@ -15,6 +15,18 @@ export default function ProfileLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="terms"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="privacy"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 

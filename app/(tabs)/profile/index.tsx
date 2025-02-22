@@ -79,6 +79,12 @@ export default function ProfileScreen() {
       case 1: // Thông tin cá nhân
         router.push('/profile/edit');
         break;
+      case 5: // Điều khoản sử dụng
+        router.push('/profile/terms');
+        break;
+      case 6: // Chính sách bảo mật
+        router.push('/profile/privacy');
+        break;
       // Có thể thêm các case khác cho các menu item khác
     }
   };
