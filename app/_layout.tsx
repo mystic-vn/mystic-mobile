@@ -1,9 +1,8 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import { Stack, Slot, SplashScreen } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -12,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MysticOverlay } from '@/components/MysticOverlay';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Prevent auto hide of splash screen
 SplashScreen.preventAutoHideAsync();
 
 const customDarkTheme = {
@@ -34,28 +33,47 @@ const customLightTheme = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-      checkAuth();
+    if (error) throw error;
+  }, [error]);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Đợi fonts load xong
+        if (!loaded) return;
+
+        // Đợi thêm 1 giây để đảm bảo splash screen hiển thị
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Kiểm tra auth
+        const token = await AsyncStorage.getItem('access_token');
+        
+        // Ẩn splash screen mặc định của Expo
+        await SplashScreen.hideAsync();
+        
+        // Đánh dấu đã sẵn sàng
+        setIsReady(true);
+
+        // Điều hướng dựa trên trạng thái đăng nhập
+        if (!token) {
+          router.replace('/auth/login');
+        }
+      } catch (e) {
+        console.warn(e);
+      }
     }
+
+    prepare();
   }, [loaded]);
 
-  const checkAuth = async () => {
-    const token = await AsyncStorage.getItem('access_token');
-    if (!token) {
-      router.replace('/auth/login');
-    } else {
-      router.replace('/(tabs)');
-    }
-  };
-
-  if (!loaded) {
+  if (!isReady) {
     return null;
   }
 
@@ -76,6 +94,7 @@ export default function RootLayout() {
                 backgroundColor: colorScheme === 'dark' ? '' : '',
               },
             }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ headerShown: false }} />
           </Stack>

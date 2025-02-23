@@ -1,213 +1,314 @@
-import { Image, StyleSheet, Platform, TouchableOpacity, ScrollView } from 'react-native';
+import { Image, StyleSheet, Platform, TouchableOpacity, Animated, Dimensions, Easing, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useRef } from 'react';
+import { router } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+
+const { width, height } = Dimensions.get('window');
+
+const STAR_COUNT = 50;
 
 export default function HomeScreen() {
-  const tempImage = require('@/assets/images/logo.png');
-  
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0.4)).current;
+  const starsAnim = Array(STAR_COUNT).fill(0).map(() => ({
+    opacity: useRef(new Animated.Value(Math.random())).current,
+    scale: useRef(new Animated.Value(Math.random())).current,
+  }));
+
+  useEffect(() => {
+    // Logo animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.out(Easing.back(1.5)),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Rotating animation
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 20000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Glow animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.4,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Stars twinkling
+    starsAnim.forEach(star => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(star.opacity, {
+            toValue: Math.random(),
+            duration: 1000 + Math.random() * 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(star.scale, {
+            toValue: Math.random(),
+            duration: 1000 + Math.random() * 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    });
+  }, []);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
-    <ScrollView style={styles.container}>
-     
-      <ThemedView style={styles.headerGradient} >
-      <Image 
-          source={tempImage}
-          style={styles.headerLogo}
-        />
-        <ThemedText style={styles.headerTitle}>Mystic</ThemedText>
-        <ThemedText style={styles.headerSubtitle}>Khám phá thế giới huyền bí</ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.categoriesContainer}>
-        <TouchableOpacity style={styles.categoryCard}>
+    <ThemedView style={styles.container}>
+      <LinearGradient
+        colors={['#2D1B69', '#4A1B6D', '#1F1135']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.content}>
+        
+        {/* Stars Background */}
+        {starsAnim.map((star, index) => (
+          <Animated.View
+            key={index}
+            style={[
+              styles.star,
+              {
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                opacity: star.opacity,
+                transform: [{ scale: star.scale }],
+              },
+            ]}
+          />
+        ))}
+
+        {/* Mystic Circle */}
+        <Animated.View
+          style={[
+            styles.mysticCircle,
+            {
+              opacity: fadeAnim,
+              transform: [
+                { rotate: spin },
+                { scale: scaleAnim }
+              ],
+            },
+          ]}>
           <LinearGradient
-            colors={['#4a2b7e', '#2d1b4f']}
-            style={styles.categoryGradient}>
-            <Image 
-              source={tempImage}
-              style={styles.categoryImage}
-            />
-            <ThemedText style={styles.categoryTitle}>Tarot</ThemedText>
-            <ThemedText style={styles.categoryDesc}>Khám phá những thông điệp từ lá bài</ThemedText>
+            colors={['rgba(159,122,234,0.05)', 'rgba(159,122,234,0.02)']}
+            style={styles.circleGradient}
+          />
+        </Animated.View>
+
+        {/* Inner Circle */}
+        <Animated.View
+          style={[
+            styles.innerCircle,
+            {
+              opacity: fadeAnim,
+              transform: [
+                { rotate: spin },
+                { scale: scaleAnim }
+              ],
+            },
+          ]}>
+          <LinearGradient
+            colors={['rgba(159,122,234,0.1)', 'transparent']}
+            style={styles.innerGradient}
+          />
+        </Animated.View>
+
+        {/* Logo */}
+        <Animated.View
+          style={[
+            styles.logoContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}>
+          <Image 
+            source={require('@/assets/images/logo.png')}
+            style={styles.logo}
+          />
+          <Animated.View
+            style={[
+              styles.glow,
+              {
+                opacity: glowAnim,
+              },
+            ]}
+          />
+        </Animated.View>
+        
+        {/* Welcome Text */}
+        <Animated.View
+          style={[
+            styles.textContainer,
+            {
+              opacity: fadeAnim,
+            },
+          ]}>
+          <ThemedText type="title" style={styles.title}>
+            Mystic
+          </ThemedText>
+          <ThemedText style={styles.description}>
+            Khám phá những điều kỳ diệu trong vũ trụ tâm linh
+          </ThemedText>
+        </Animated.View>
+
+        {/* Start Button */}
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/discover')}
+          style={styles.button}>
+          <LinearGradient
+            colors={['rgba(159,122,234,0.3)', 'rgba(159,122,234,0.1)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.buttonContent}>
+            <IconSymbol name="sparkles" size={20} color="#fff" />
+            <ThemedText style={styles.buttonText}>
+              Bắt đầu hành trình
+            </ThemedText>
           </LinearGradient>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.categoryCard}>
-          <LinearGradient
-            colors={['#7e2b5e', '#4f1b3d']}
-            style={styles.categoryGradient}>
-            <Image
-              source={tempImage}
-              style={styles.categoryImage}
-            />
-            <ThemedText style={styles.categoryTitle}>Oracle</ThemedText>
-            <ThemedText style={styles.categoryDesc}>Thông điệp từ các thiên thần</ThemedText>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.categoryCard}>
-          <LinearGradient
-            colors={['#2b7e6f', '#1b4f46']}
-            style={styles.categoryGradient}>
-            <Image
-              source={tempImage}
-              style={styles.categoryImage}
-            />
-            <ThemedText style={styles.categoryTitle}>Thần Số Học</ThemedText>
-            <ThemedText style={styles.categoryDesc}>Khám phá bản thân bạn qua những con số</ThemedText>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.categoryCard}>
-          <LinearGradient
-            colors={['#7e612b', '#4f3d1b']}
-            style={styles.categoryGradient}>
-            <Image
-              source={tempImage}
-              style={styles.categoryImage}
-            />
-            <ThemedText style={styles.categoryTitle}>Chiêm Tinh</ThemedText>
-            <ThemedText style={styles.categoryDesc}>Khám phá bản đồ sao của bạn</ThemedText>
-          </LinearGradient>
-        </TouchableOpacity>
-      </ThemedView>
-
-      <ThemedView style={styles.featuredSection}>
-        <ThemedText style={styles.sectionTitle}>Đọc nhiều nhất</ThemedText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.featuredScroll}>
-          <TouchableOpacity style={styles.featuredCard}>
-            <LinearGradient
-              colors={['#2b4a7e', '#1b2d4f']}
-              style={styles.featuredGradient}>
-              <Image
-                source={tempImage}
-                style={styles.featuredImage}
-              />
-              <ThemedText style={styles.featuredTitle}>Bài Tarot hôm nay</ThemedText>
-              <ThemedText style={styles.featuredDesc}>Thông điệp dành cho bạn</ThemedText>
-            </LinearGradient>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.featuredCard}>
-            <LinearGradient
-              colors={['#7e2b4a', '#4f1b2d']}
-              style={styles.featuredGradient}>
-              <Image
-                source={tempImage}
-                style={styles.featuredImage}
-              />
-              <ThemedText style={styles.featuredTitle}>Số chủ đạo</ThemedText>
-              <ThemedText style={styles.featuredDesc}>Khám phá con số của bạn</ThemedText>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView>
-      </ThemedView>
-    </ScrollView>
+      </LinearGradient>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginBottom:80,
   },
-  headerGradient: {
-    padding: 20,
-    height: 250,
+  content: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+  },
+  star: {
+    position: 'absolute',
+    width: 3,
+    height: 3,
+    backgroundColor: '#fff',
+    borderRadius: 1.5,
+  },
+  mysticCircle: {
+    position: 'absolute',
+    width: width * 0.85,
+    height: width * 0.85,
+    borderRadius: width * 0.425,
     alignItems: 'center',
-    marginTop: 50,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(159,122,234,0.1)',
   },
-  headerLogo: {
-    width: 120,
-    height: 120,
-    marginBottom: 15,
+  circleGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: width * 0.425,
   },
-  headerTitle: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 10,
-    lineHeight: 48,
+  innerCircle: {
+    position: 'absolute',
+    width: width * 0.65,
+    height: width * 0.65,
+    borderRadius: width * 0.325,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '45deg' }],
   },
-  headerSubtitle: {
+  innerGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: width * 0.325,
+    borderWidth: 1,
+    borderColor: 'rgba(159,122,234,0.05)',
+  },
+  logoContainer: {
+    marginBottom: 40,
+    alignItems: 'center',
+  },
+  logo: {
+    width: width * 0.35,
+    height: width * 0.35,
+  },
+  glow: {
+    position: 'absolute',
+    width: width * 0.4,
+    height: width * 0.4,
+    borderRadius: width * 0.2,
+    backgroundColor: 'rgba(159,122,234,0.15)',
+    transform: [{ scale: 1.2 }],
+  },
+  textContainer: {
+    alignItems: 'center',
+    marginBottom: 60,
+  },
+  title: {
+    marginBottom: 16,
+    textAlign: 'center',
+    fontSize: 42,
+    letterSpacing: 2,
+    lineHeight: 50,
+  },
+  description: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 24,
+    textAlign: 'center',
+    opacity: 0.8,
+    maxWidth: '80%',
+    letterSpacing: 0.5,
   },
-  categoriesContainer: {
-    padding: 15,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  categoryCard: {
-    width: '48%',
-    marginBottom: 15,
-    borderRadius: 15,
-    overflow: 'hidden',
-  },
-  categoryGradient: {
-    padding: 15,
-    alignItems: 'center',
-    borderRadius: 15,
-  },
-  categoryImage: {
-    width: 50,
+  button: {
+    width: '70%',
     height: 50,
-    marginBottom: 10,
     borderRadius: 25,
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#fff',
-  },
-  categoryDesc: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'center',
-  },
-  featuredSection: {
-    padding: 15,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#fff',
-  },
-  featuredScroll: {
-    flexDirection: 'row',
-  },
-  featuredCard: {
-    width: 200,
-    marginRight: 15,
-    borderRadius: 15,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(159,122,234,0.3)',
   },
-  featuredGradient: {
-    padding: 15,
+  buttonContent: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 15,
-    height: 200,
+    justifyContent: 'center',
+    gap: 8,
   },
-  featuredImage: {
-    width: 80,
-    height: 80,
-    marginBottom: 15,
-    borderRadius: 40,
-  },
-  featuredTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
+  buttonText: {
     color: '#fff',
-    textAlign: 'center',
-  },
-  featuredDesc: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });

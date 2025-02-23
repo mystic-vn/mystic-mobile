@@ -37,17 +37,17 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
+        name="discover"
+        options={{
+          title: 'Khám phá',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="sparkles" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="library"
         options={{
           title: 'Thư viện',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="books.vertical.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="support"
-        options={{
-          title: 'Hỗ trợ',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="questionmark.circle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -68,10 +68,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="notifications"
+        name="support"
         options={{
-          title: 'Thông báo',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="bell.fill" color={color} />,
+          title: 'Hỗ trợ',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="questionmark.circle.fill" color={color} />,
         }}
       />
       <Tabs.Screen
