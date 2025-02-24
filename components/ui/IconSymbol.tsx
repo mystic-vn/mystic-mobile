@@ -3,7 +3,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight } from 'expo-symbols';
 import React from 'react';
-import { OpaqueColorValue, StyleProp, ViewStyle } from 'react-native';
+import { OpaqueColorValue, StyleProp, TextStyle } from 'react-native';
 
 // Add your SFSymbol to MaterialIcons mappings here.
 const MAPPING = {
@@ -13,6 +13,16 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  // Thêm mapping cho các icon đang sử dụng
+  'sparkles': 'auto-awesome',
+  'books.vertical.fill': 'library-books',
+  'questionmark.circle.fill': 'help',
+  'person.fill': 'person',
+  'moon.stars': 'nights-stay',
+  'star': 'star',
+  'sun.max': 'wb-sunny',
+  'number': 'looks-one',
+  'wand.and.stars': 'auto-fix-high',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],
@@ -36,8 +46,9 @@ export function IconSymbol({
   name: IconSymbolName;
   size?: number;
   color: string | OpaqueColorValue;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  const materialIconName = MAPPING[name] || 'help-outline'; // Fallback icon if mapping not found
+  return <MaterialIcons color={color} size={size} name={materialIconName} style={style} />;
 }

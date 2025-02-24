@@ -1,8 +1,8 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, Slot, SplashScreen } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -10,9 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MysticOverlay } from '@/components/MysticOverlay';
-
-// Prevent auto hide of splash screen
-SplashScreen.preventAutoHideAsync();
 
 const customDarkTheme = {
   ...DarkTheme,
@@ -33,7 +30,6 @@ const customLightTheme = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
 
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -49,21 +45,14 @@ export default function RootLayout() {
         // Đợi fonts load xong
         if (!loaded) return;
 
-        // Đợi thêm 1 giây để đảm bảo splash screen hiển thị
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Kiểm tra auth
         const token = await AsyncStorage.getItem('access_token');
         
-        // Ẩn splash screen mặc định của Expo
-        await SplashScreen.hideAsync();
-        
-        // Đánh dấu đã sẵn sàng
-        setIsReady(true);
-
         // Điều hướng dựa trên trạng thái đăng nhập
         if (!token) {
           router.replace('/auth/login');
+        } else {
+          router.replace('/(tabs)');
         }
       } catch (e) {
         console.warn(e);
@@ -73,7 +62,7 @@ export default function RootLayout() {
     prepare();
   }, [loaded]);
 
-  if (!isReady) {
+  if (!loaded) {
     return null;
   }
 
@@ -95,6 +84,7 @@ export default function RootLayout() {
               },
             }}>
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(splash)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ headerShown: false }} />
           </Stack>

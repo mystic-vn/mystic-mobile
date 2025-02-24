@@ -1,29 +1,26 @@
 import axios, { AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+// Config API
+const API_URL = 'http://192.168.1.239:3001';
+const API_VERSION = 'v1';
+
+console.log('API Config:', { API_URL, API_VERSION }); // Debug log
 
 // Xác định baseURL dựa trên platform và môi trường
 const getBaseUrl = () => {
-  // Sử dụng IP thực của máy trong mạng LAN
-  const LOCAL_IP = '192.168.1.6';
-  const API_PORT = '3001';
-
-  if (__DEV__) {
-    if (Platform.OS === 'android') {
-      // Nếu dùng Android Emulator
-      return `http://10.0.2.2:${API_PORT}`;
-    }
-    // Cho cả iOS và thiết bị thật
-    return `http://${LOCAL_IP}:${API_PORT}`;
+  if (__DEV__ && Platform.OS === 'android') {
+    // Nếu dùng Android Emulator
+    return API_URL.replace(/^http:\/\/[^:]+/, 'http://10.0.2.2');
   }
-  
-  // Cho production (có thể thay đổi sau)
-  return `http://${LOCAL_IP}:${API_PORT}`;
+  return API_URL;
 };
 
 // Tạo instance axios với cấu hình mặc định
 const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: `${getBaseUrl()}/api/${API_VERSION}`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
