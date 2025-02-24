@@ -1,17 +1,12 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { BlurView } from 'expo-blur';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { memo } from 'react';
 
-export default function BlurTabBarBackground() {
+// Export function component trực tiếp thay vì export default
+export function TabBarBackground() {
   return (
-    <BlurView
-      // System chrome material automatically adapts to the system's theme
-      // and matches the native tab bar appearance on iOS.
-      tint="systemChromeMaterial"
-      intensity={100}
-      style={StyleSheet.absoluteFill}
-    />
+    <View style={[StyleSheet.absoluteFill, styles.background]} />
   );
 }
 
@@ -20,3 +15,9 @@ export function useBottomTabOverflow() {
   const { bottom } = useSafeAreaInsets();
   return tabHeight - bottom;
 }
+
+const styles = StyleSheet.create({
+  background: {
+    backgroundColor: 'rgba(52, 0, 51, 0.85)',
+  },
+});

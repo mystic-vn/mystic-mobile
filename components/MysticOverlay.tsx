@@ -1,17 +1,12 @@
 import { StyleSheet, useWindowDimensions, View, ViewStyle } from 'react-native';
 import Animated, { 
   useAnimatedStyle, 
-  withSpring, 
   withRepeat, 
-  withSequence,
   useSharedValue,
   withTiming,
-  withDelay,
   Easing,
-  interpolate,
-  withDecay
 } from 'react-native-reanimated';
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 
 interface StarProps {
   delay?: number;
@@ -19,72 +14,25 @@ interface StarProps {
   style?: ViewStyle;
 }
 
-const Star = ({ delay = 0, size = 4, style }: StarProps) => {
-  const progress = useSharedValue(0);
-  const rotate = useSharedValue(0);
+// Memoize Star component để tránh re-render không cần thiết
+const Star = memo(({ delay = 0, size = 4, style }: StarProps) => {
+  const opacity = useSharedValue(0.2);
 
   useEffect(() => {
-    // Hiệu ứng xoay nhẹ nhàng
-    rotate.value = withDelay(
-      delay,
-      withRepeat(
-        withTiming(360, {
-          duration: 8000,
-          easing: Easing.linear,
-        }),
-        -1,
-        false
-      )
-    );
-
-    // Hiệu ứng chuyển động phức hợp
-    progress.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(1, {
-            duration: 3000,
-            easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-          }),
-          withTiming(0, {
-            duration: 3000,
-            easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-          })
-        ),
-        -1,
-        true
-      )
+    // Chỉ sử dụng một animation đơn giản
+    opacity.value = withRepeat(
+      withTiming(1, {
+        duration: 2000 + delay,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
     );
   }, [delay]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      progress.value,
-      [0, 0.5, 1],
-      [0.2, 1, 0.2]
-    );
-
-    const scale = interpolate(
-      progress.value,
-      [0, 0.5, 1],
-      [0.8, 1.2, 0.8]
-    );
-
-    return {
-      opacity,
-      transform: [
-        { scale },
-        { rotate: `${rotate.value}deg` },
-        { 
-          translateY: interpolate(
-            progress.value,
-            [0, 0.5, 1],
-            [-5, 0, 5]
-          )
-        }
-      ],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   return (
     <Animated.View
@@ -100,27 +48,20 @@ const Star = ({ delay = 0, size = 4, style }: StarProps) => {
       ]}
     />
   );
-};
+});
 
-export const MysticOverlay = () => {
+// Memoize toàn bộ MysticOverlay
+export const MysticOverlay = memo(() => {
   const { width, height } = useWindowDimensions();
   
-  // Tạo các cụm sao với mật độ khác nhau và prefix cho id
-  const createStarCluster = (count: number, sizeRange: [number, number], prefix: string) => {
-    return Array(count).fill(0).map((_, i) => ({
-      id: `${prefix}-${i}`,
-      top: Math.random() * height,
-      left: Math.random() * width,
-      size: Math.random() * (sizeRange[1] - sizeRange[0]) + sizeRange[0],
-      delay: Math.random() * 5000,
-    }));
-  };
-
-  // Tạo 3 lớp sao với kích thước và prefix khác nhau
-  const smallStars = createStarCluster(80, [1, 3], 'small');
-  const mediumStars = createStarCluster(40, [3, 5], 'medium');
-  const largeStars = createStarCluster(20, [5, 8], 'large');
-  const stars = [...smallStars, ...mediumStars, ...largeStars];
+  // Giảm số lượng sao và tạo sẵn mảng stars để tránh tính toán lại
+  const stars = Array(30).fill(0).map((_, i) => ({
+    id: `star-${i}`,
+    top: Math.random() * height,
+    left: Math.random() * width,
+    size: Math.random() * 4 + 2, // 2-6px
+    delay: Math.random() * 2000,
+  }));
 
   return (
     <View style={[styles.overlay, { width, height }]}>
@@ -138,7 +79,7 @@ export const MysticOverlay = () => {
       ))}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   overlay: {
@@ -157,8 +98,8 @@ const styles = StyleSheet.create({
       width: 0,
       height: 0,
     },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 3,
   }
 }); 

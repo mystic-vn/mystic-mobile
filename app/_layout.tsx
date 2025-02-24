@@ -1,18 +1,16 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, Slot, SplashScreen } from 'expo-router';
+import { Stack, Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MysticOverlay } from '@/components/MysticOverlay';
-
-// Prevent auto hide of splash screen
-SplashScreen.preventAutoHideAsync();
 
 const customDarkTheme = {
   ...DarkTheme,
@@ -29,6 +27,17 @@ const customLightTheme = {
     background: 'transparent',
   },
 };
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 phút
+      cacheTime: 1000 * 60 * 30, // 30 phút
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -49,14 +58,8 @@ export default function RootLayout() {
         // Đợi fonts load xong
         if (!loaded) return;
 
-        // Đợi thêm 1 giây để đảm bảo splash screen hiển thị
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // Kiểm tra auth
         const token = await AsyncStorage.getItem('access_token');
-        
-        // Ẩn splash screen mặc định của Expo
-        await SplashScreen.hideAsync();
         
         // Đánh dấu đã sẵn sàng
         setIsReady(true);
@@ -78,30 +81,32 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
-      <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#3B0B45' : '#3B0B45' }]}>
-        <View style={styles.backgroundContainer}>
-          <MysticOverlay />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
+        <View style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#3B0B45' : '#3B0B45' }]}>
+          <View style={styles.backgroundContainer}>
+            <MysticOverlay />
+          </View>
+          <View style={styles.contentContainer}>
+            <Stack
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: 'transparent',
+                },
+                headerTransparent: true,
+                contentStyle: {
+                  backgroundColor: colorScheme === 'dark' ? '' : '',
+                },
+              }}>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="auth" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          </View>
         </View>
-        <View style={styles.contentContainer}>
-          <Stack
-            screenOptions={{
-              headerStyle: {
-                backgroundColor: 'transparent',
-              },
-              headerTransparent: true,
-              contentStyle: {
-                backgroundColor: colorScheme === 'dark' ? '' : '',
-              },
-            }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="auth" options={{ headerShown: false }} />
-          </Stack>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        </View>
-      </View>
-    </ThemeProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

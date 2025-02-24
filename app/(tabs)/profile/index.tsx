@@ -101,37 +101,37 @@ export default function ProfileScreen() {
     {
       id: 1,
       title: 'Thông tin cá nhân',
-      icon: 'person' as const,
+      icon: 'person.fill' as const,
       color: '#9f7aea',
     },
     {
       id: 2,
       title: 'Lịch sử tra cứu',
-      icon: 'clock' as const,
+      icon: 'clock.arrow.circlepath' as const,
       color: '#9f7aea',
     },
     {
       id: 3,
       title: 'Bài viết đã lưu',
-      icon: 'bookmark' as const,
+      icon: 'bookmark.fill' as const,
       color: '#9f7aea',
     },
     {
       id: 4,
       title: 'Cài đặt',
-      icon: 'gearshape' as const,
+      icon: 'gear.circle.fill' as const,
       color: '#9f7aea',
     },
     {
       id: 5,
       title: 'Điều khoản sử dụng',
-      icon: 'doc.text' as const,
+      icon: 'doc.text.fill' as const,
       color: '#9f7aea',
     },
     {
       id: 6,
       title: 'Chính sách bảo mật',
-      icon: 'lock' as const,
+      icon: 'shield.fill' as const,
       color: '#9f7aea',
     },
   ];

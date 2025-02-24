@@ -1,7 +1,7 @@
 import { StyleSheet, ScrollView, Pressable, Dimensions } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { memo } from 'react';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ThemedText } from '@/components/ThemedText';
@@ -11,70 +11,102 @@ const { width } = Dimensions.get('window');
 const CARD_PADDING = 20;
 const CARD_WIDTH = width - (CARD_PADDING * 2);
 
-const MYSTIC_ITEMS = [
+type MysticItem = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  colors: readonly [string, string];
+};
+
+const MYSTIC_ITEMS: MysticItem[] = [
   {
     id: 'tarot',
     title: 'Tarot',
     description: 'Khám phá bộ bài Tarot huyền bí',
     icon: 'wand.and.stars',
-    colors: ['#9f7aea', '#805ad5'],
+    colors: ['#9f7aea', '#805ad5'] as const,
   },
   {
     id: 'oracle',
     title: 'Oracle',
     description: 'Thông điệp từ thế giới tâm linh',
     icon: 'moon.stars',
-    colors: ['#667eea', '#764ba2'],
+    colors: ['#667eea', '#764ba2'] as const,
   },
   {
     id: 'numerology',
     title: 'Thần Số Học',
     description: 'Khám phá con số định mệnh của bạn',
     icon: 'number',
-    colors: ['#f687b3', '#ed64a6'],
+    colors: ['#f687b3', '#ed64a6'] as const,
   },
   {
     id: 'zodiac',
     title: 'Cung Hoàng Đạo',
     description: 'Khám phá năng lượng của các vì sao',
     icon: 'sparkles',
-    colors: ['#fbd38d', '#ed8936'],
+    colors: ['#fbd38d', '#ed8936'] as const,
   },
 ];
 
+// Memoize card component
+const MysticCard = memo(({ item, onPress }: {
+  item: MysticItem;
+  onPress: () => void;
+}) => (
+  <Pressable style={styles.card} onPress={onPress}>
+    <LinearGradient
+      colors={item.colors}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.cardGradient}>
+      <ThemedView style={styles.cardContent}>
+        <ThemedView style={styles.iconContainer}>
+          <IconSymbol name={item.icon as any} size={32} color="#fff" />
+        </ThemedView>
+        <ThemedView style={styles.cardTextContainer}>
+          <ThemedText type="subtitle" style={styles.cardTitle}>{item.title}</ThemedText>
+          <ThemedText style={styles.cardDescription}>{item.description}</ThemedText>
+        </ThemedView>
+      </ThemedView>
+    </LinearGradient>
+  </Pressable>
+));
+
+// Memoize header component
+const Header = memo(() => (
+  <ThemedView style={styles.header}>
+    <ThemedText type="title" style={styles.title}>Khám Phá</ThemedText>
+    <ThemedText type="subtitle" style={styles.subtitle}>
+      Hành trình tìm hiểu thế giới huyền bí
+    </ThemedText>
+  </ThemedView>
+));
+
 export default function DiscoverScreen() {
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.title}>Khám Phá</ThemedText>
-        <ThemedText type="subtitle" style={styles.subtitle}>Hành trình tìm hiểu thế giới huyền bí</ThemedText>
-      </ThemedView>
+    <LinearGradient
+      colors={['#2D1B69', '#4A1B6D', '#1F1135']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}>
+        <Header />
 
-      <ThemedView style={styles.cardsContainer}>
-        {MYSTIC_ITEMS.map((item) => (
-          <Pressable
-            key={item.id}
-            style={styles.card}
-            onPress={() => router.push(`/discover/${item.id}`)}>
-            <LinearGradient
-              colors={item.colors as any}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.cardGradient}>
-              <BlurView intensity={20} style={styles.cardContent}>
-                <ThemedView style={styles.iconContainer}>
-                  <IconSymbol name={item.icon as any} size={32} color="#fff" />
-                </ThemedView>
-                <ThemedView style={styles.cardTextContainer}>
-                  <ThemedText type="subtitle" style={styles.cardTitle}>{item.title}</ThemedText>
-                  <ThemedText style={styles.cardDescription}>{item.description}</ThemedText>
-                </ThemedView>
-              </BlurView>
-            </LinearGradient>
-          </Pressable>
-        ))}
-      </ThemedView>
-    </ScrollView>
+        <ThemedView style={styles.cardsContainer}>
+          {MYSTIC_ITEMS.map((item) => (
+            <MysticCard
+              key={item.id}
+              item={item}
+              onPress={() => router.push('/(tabs)/discover/' + item.id as any)}
+            />
+          ))}
+        </ThemedView>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
@@ -89,7 +121,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 8,
-    lineHeight:80
+    lineHeight: 80,
   },
   subtitle: {
     opacity: 0.7,
