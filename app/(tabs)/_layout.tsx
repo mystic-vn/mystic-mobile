@@ -13,9 +13,11 @@ type TabBarIconProps = {
   focused?: boolean;
 };
 
+// Cache logo image để tránh bị reload
+const LOGO_IMAGE = require('@/assets/images/logo.png');
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const mysticLogo = require('@/assets/images/logo.png');
 
   // Memoize styles để tránh tính toán lại
   const tabBarStyle = React.useMemo(() => ({
@@ -31,6 +33,17 @@ export default function TabLayout() {
       paddingBottom: 8,
     }),
   }), []);
+
+  // Memoize logo component để tránh re-render
+  const LogoIcon = React.useCallback(({ focused }: TabBarIconProps) => (
+    <View style={styles.logoWrapper}>
+      <Image 
+        source={LOGO_IMAGE}
+        style={[styles.logo, { opacity: focused ? 1 : 0.7 }]}
+        resizeMode="contain"
+      />
+    </View>
+  ), []);
 
   const screenOptions = React.useMemo(() => ({
     tabBarActiveTintColor: '#9f7aea',
@@ -76,15 +89,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '',
-          tabBarIcon: ({ focused }: TabBarIconProps) => (
-            <View style={styles.logoWrapper}>
-              <Image 
-                source={mysticLogo}
-                style={[styles.logo, { opacity: focused ? 1 : 0.7 }]}
-                resizeMode="contain"
-              />
-            </View>
-          ),
+          tabBarIcon: LogoIcon,
         }}
       />
       <Tabs.Screen

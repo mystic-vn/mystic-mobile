@@ -52,8 +52,11 @@ export default function QuestionsScreen() {
   };
 
   const handleQuestionPress = (question: Question) => {
-    // TODO: Navigate to spread type selection screen
-    console.log('Selected question:', question);
+    // Điều hướng đến màn hình trải bài với id của câu hỏi
+    router.push({
+      pathname: "/discover/tarot/[id]/spread" as const,
+      params: { id: id as string, questionId: question._id }
+    });
   };
 
   if (isLoading) {

@@ -2,7 +2,7 @@ import { Stack, useRouter } from 'expo-router';
 import * as React from 'react';
 import { Platform, Pressable, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { IconSymbol } from '@components/ui/IconSymbol';
 
 const BackButton = React.memo(() => {
   const router = useRouter();
@@ -65,6 +65,18 @@ export default React.memo(function DiscoverLayout() {
           name="tarot/[id]/questions"
           options={{
             title: 'Câu hỏi Tarot',
+          }}
+        />
+        <Stack.Screen
+          name="tarot/[id]/spread"
+          options={{
+            title: 'Trải Bài Tarot',
+          }}
+        />
+        <Stack.Screen
+          name="tarot/[id]/analysis/[analysisId]"
+          options={{
+            title: 'Kết quả phân tích',
           }}
         />
         <Stack.Screen
