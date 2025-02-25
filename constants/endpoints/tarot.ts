@@ -37,6 +37,11 @@ export interface Question {
   updatedAt: string;
 }
 
+export interface PaginatedQuestions {
+  items: Question[];
+  hasMore: boolean;
+}
+
 export const tarotApi = {
   contexts: {
     getAll: async (): Promise<TarotContext[]> => {
@@ -49,6 +54,15 @@ export const tarotApi = {
   questions: {
     getByContextSlug: async (contextSlug: string): Promise<Question[]> => {
       return api.get(`/tarot-reading/questions/context/${contextSlug}`);
+    },
+    getByContextSlugPaginated: async (
+      contextSlug: string,
+      page: number = 1,
+      limit: number = 10
+    ): Promise<PaginatedQuestions> => {
+      return api.get(`/tarot-reading/questions/context/${contextSlug}/paginated`, {
+        params: { page, limit }
+      });
     }
   }
 };

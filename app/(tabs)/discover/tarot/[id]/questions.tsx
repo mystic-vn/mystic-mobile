@@ -1,27 +1,55 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { tarotApi, Question, TarotContext } from '@/constants/endpoints/tarot';
+import { tarotApi, Question, TarotContext, PaginatedQuestions } from '@/constants/endpoints/tarot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 export default function QuestionsScreen() {
   const { id } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: context } = useQuery<TarotContext>({
     queryKey: ['tarot-context', id],
     queryFn: () => tarotApi.contexts.getBySlug(id as string),
   });
 
-  const { data: questions = [], isLoading, isError, error, refetch } = useQuery<Question[]>({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useInfiniteQuery<PaginatedQuestions>({
     queryKey: ['tarot-questions', id],
-    queryFn: () => tarotApi.questions.getByContextSlug(id as string),
+    queryFn: ({ pageParam }) => 
+      tarotApi.questions.getByContextSlugPaginated(id as string, pageParam as number),
+    getNextPageParam: (lastPage, pages) => 
+      lastPage.hasMore ? pages.length + 1 : undefined,
+    initialPageParam: 1,
   });
+
+  const questions = data?.pages.flatMap(page => page.items) ?? [];
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  };
 
   const handleQuestionPress = (question: Question) => {
     // TODO: Navigate to spread type selection screen
@@ -76,6 +104,22 @@ export default function QuestionsScreen() {
           contentContainerStyle={{
             paddingBottom: insets.bottom + 80,
           }}
+          onScroll={({ nativeEvent }) => {
+            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+            const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+            
+            if (isCloseToBottom) {
+              handleLoadMore();
+            }
+          }}
+          scrollEventThrottle={400}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor="#fff"
+            />
+          }
         >
           <ThemedView style={styles.content}>
             <ThemedText type="subtitle" style={styles.subtitle}>
@@ -99,42 +143,50 @@ export default function QuestionsScreen() {
                   </ThemedText>
                 </ThemedView>
               ) : (
-                questions.map((question) => (
-                  <TouchableOpacity
-                    key={question._id}
-                    style={styles.questionCard}
-                    onPress={() => handleQuestionPress(question)}
-                  >
-                    <LinearGradient
-                      colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                      style={styles.cardGradient}
+                <>
+                  {questions.map((question) => (
+                    <TouchableOpacity
+                      key={question._id}
+                      style={styles.questionCard}
+                      onPress={() => handleQuestionPress(question)}
                     >
-                      <MaterialCommunityIcons
-                        name="cards"
-                        size={24}
-                        color="#fff"
-                        style={styles.icon}
-                      />
-                      <ThemedView style={styles.questionContent}>
-                        <ThemedText style={styles.questionTitle}>
-                          {question.title}
-                        </ThemedText>
-                        <ThemedText style={styles.questionDescription} numberOfLines={2}>
-                          {question.content}
-                        </ThemedText>
-                        {question.keywords.length > 0 && (
-                          <ThemedView style={styles.keywordsContainer}>
-                            {question.keywords.map((keyword, index) => (
-                              <ThemedText key={index} style={styles.keyword}>
-                                #{keyword}
-                              </ThemedText>
-                            ))}
-                          </ThemedView>
-                        )}
-                      </ThemedView>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                ))
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+                        style={styles.cardGradient}
+                      >
+                        <MaterialCommunityIcons
+                          name="cards"
+                          size={24}
+                          color="#fff"
+                          style={styles.icon}
+                        />
+                        <ThemedView style={styles.questionContent}>
+                          <ThemedText style={styles.questionTitle}>
+                            {question.title}
+                          </ThemedText>
+                          <ThemedText style={styles.questionDescription} numberOfLines={2}>
+                            {question.content}
+                          </ThemedText>
+                          {question.keywords.length > 0 && (
+                            <ThemedView style={styles.keywordsContainer}>
+                              {question.keywords.map((keyword: string, index: number) => (
+                                <ThemedText key={index} style={styles.keyword}>
+                                  #{keyword}
+                                </ThemedText>
+                              ))}
+                            </ThemedView>
+                          )}
+                        </ThemedView>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  ))}
+                  
+                  {isFetchingNextPage && (
+                    <ThemedView style={styles.loadingMoreContainer}>
+                      <ActivityIndicator size="small" color="#fff" />
+                    </ThemedView>
+                  )}
+                </>
               )}
             </ThemedView>
           </ThemedView>
@@ -245,5 +297,10 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  loadingMoreContainer: {
+    padding: 16,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
 }); 
