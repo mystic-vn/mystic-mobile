@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Dimensions } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Dimensions, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@components/ThemedText';
 import { ThemedView } from '@components/ThemedView';
@@ -26,22 +26,96 @@ type CreateAnalysisData = {
   }[];
 };
 
+// Thêm component LoadingAnalysis
+const LoadingAnalysis = () => {
+  const [rotation] = useState(new Animated.Value(0));
+  const [scale] = useState(new Animated.Value(1));
+
+  useEffect(() => {
+    // Hiệu ứng xoay liên tục
+    Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Hiệu ứng co giãn
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 1.2,
+          duration: 1000,
+          easing: Easing.ease,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.ease,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  return (
+    <LinearGradient
+      colors={['#2D1B69', '#4A1B6D', '#1F1135']}
+      style={styles.loadingContainer}
+    >
+      <ThemedView style={styles.loadingContent}>
+        <Animated.View
+          style={[
+            styles.loadingIconContainer,
+            {
+              transform: [
+                { rotate: spin },
+                { scale: scale }
+              ],
+            },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name="cards"
+            size={48}
+            color="#fff"
+          />
+        </Animated.View>
+        <ThemedText style={styles.loadingText}>
+          Đang phân tích trải bài của bạn...
+        </ThemedText>
+        <ThemedText style={styles.loadingSubText}>
+          Xin vui lòng chờ trong giây lát
+        </ThemedText>
+      </ThemedView>
+    </LinearGradient>
+  );
+};
+
 export default function SpreadScreen() {
   const { id, questionId } = useLocalSearchParams<{ id: string; questionId: string }>();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   
   const [selectedCards, setSelectedCards] = useState<{cardId: string, position: number}[]>([]);
-  const [isCardSelectionMode, setIsCardSelectionMode] = useState(false);
-  const [currentPosition, setCurrentPosition] = useState(0);
+  const [isShuffling, setIsShuffling] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ReadingAnalysis | null>(null);
+  const [shuffleRotation, setShuffleRotation] = useState(0);
+  const [shuffleScale, setShuffleScale] = useState(1);
 
   const handleReset = () => {
-    // Điều hướng về trang chọn câu hỏi theo chủ đề
-    router.replace({
-      pathname: "/discover/tarot/[id]/questions" as const,
-      params: { id: id as string }
-    });
+    router.back();
+    setTimeout(() => {
+      router.back();
+    }, 100);
   };
 
   // Fetch question details (which includes spread type)
@@ -98,25 +172,53 @@ export default function SpreadScreen() {
     }
   });
 
-  const handlePositionSelect = (position: number) => {
-    setCurrentPosition(position);
-    setIsCardSelectionMode(true);
+  // Thêm hàm shuffle cards
+  const shuffleCards = (cards: Card[]) => {
+    const shuffled = [...cards];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   };
 
-  const handleCardSelect = (card: Card) => {
-    setSelectedCards(prev => {
-      const newCards = [...prev];
-      const existingIndex = newCards.findIndex(c => c.position === currentPosition);
+  // Thêm hàm xử lý việc rút bài
+  const handleDrawCards = () => {
+    if (!cards || !question) return;
+    
+    setIsShuffling(true);
+    
+    // Tạo hiệu ứng shuffle
+    let rotationInterval: NodeJS.Timeout;
+    let scaleInterval: NodeJS.Timeout;
+    
+    // Hiệu ứng xoay
+    rotationInterval = setInterval(() => {
+      setShuffleRotation(prev => (prev + 45) % 360);
+    }, 200);
+
+    // Hiệu ứng co giãn
+    scaleInterval = setInterval(() => {
+      setShuffleScale(prev => prev === 1 ? 0.8 : 1);
+    }, 300);
+    
+    // Tạo hiệu ứng shuffle trong 2 giây
+    setTimeout(() => {
+      clearInterval(rotationInterval);
+      clearInterval(scaleInterval);
+      setShuffleRotation(0);
+      setShuffleScale(1);
       
-      if (existingIndex !== -1) {
-        newCards[existingIndex] = { cardId: card._id, position: currentPosition };
-      } else {
-        newCards.push({ cardId: card._id, position: currentPosition });
-      }
+      const shuffled = shuffleCards(cards);
+      const drawnCards = shuffled.slice(0, question.positions.length);
+      const selected = drawnCards.map((card, index) => ({
+        cardId: card._id,
+        position: index
+      }));
       
-      return newCards;
-    });
-    setIsCardSelectionMode(false);
+      setSelectedCards(selected);
+      setIsShuffling(false);
+    }, 2000);
   };
 
   const handleSubmit = () => {
@@ -176,56 +278,6 @@ export default function SpreadScreen() {
         >
           <ThemedText style={styles.retryButtonText}>Thử lại</ThemedText>
         </TouchableOpacity>
-      </LinearGradient>
-    );
-  }
-
-  if (isCardSelectionMode && cards) {
-    return (
-      <LinearGradient
-        colors={['#2D1B69', '#4A1B6D', '#1F1135']}
-        style={styles.container}
-      >
-        <Stack.Screen 
-          options={{
-            title: 'Chọn lá bài',
-            headerStyle: {
-              backgroundColor: '#2D1B69',
-            },
-            headerTintColor: '#fff',
-          }} 
-        />
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={{
-            padding: 16,
-            paddingBottom: insets.bottom + 16,
-          }}
-        >
-          <ThemedText style={styles.positionTitle}>
-            Vị trí {currentPosition + 1}: {question?.positions[currentPosition]?.name}
-          </ThemedText>
-          <ThemedText style={styles.positionDescription}>
-            {question?.positions[currentPosition]?.description}
-          </ThemedText>
-          
-          <ThemedView style={styles.cardGrid}>
-            {cards.map((card) => (
-              <TouchableOpacity
-                key={card._id}
-                style={styles.cardItem}
-                onPress={() => handleCardSelect(card)}
-              >
-                <Image
-                  source={{ uri: card.imageUrl }}
-                  style={styles.cardImage}
-                  resizeMode="contain"
-                />
-                <ThemedText style={styles.cardName}>{card.name}</ThemedText>
-              </TouchableOpacity>
-            ))}
-          </ThemedView>
-        </ScrollView>
       </LinearGradient>
     );
   }
@@ -305,6 +357,10 @@ export default function SpreadScreen() {
     );
   }
 
+  if (isAnalyzing) {
+    return <LoadingAnalysis />;
+  }
+
   return (
     <LinearGradient
       colors={['#2D1B69', '#4A1B6D', '#1F1135']}
@@ -334,47 +390,101 @@ export default function SpreadScreen() {
               <ThemedText style={styles.questionContent}>{question.content}</ThemedText>
             </ThemedView>
 
+            {selectedCards.length === 0 && (
+              <TouchableOpacity
+                style={[styles.submitButton, styles.shuffleButton]}
+                onPress={handleDrawCards}
+                disabled={isShuffling}
+              >
+                {isShuffling ? (
+                  <>
+                    <MaterialCommunityIcons
+                      name="cards"
+                      size={24}
+                      color="#fff"
+                      style={[
+                        styles.shuffleIcon,
+                        {
+                          transform: [
+                            { rotate: `${shuffleRotation}deg` },
+                            { scale: shuffleScale }
+                          ]
+                        }
+                      ]}
+                    />
+                    <ThemedText style={styles.submitButtonText}>
+                      Đang trộn bài...
+                    </ThemedText>
+                  </>
+                ) : (
+                  <>
+                    <MaterialCommunityIcons
+                      name="cards"
+                      size={24}
+                      color="#fff"
+                      style={styles.shuffleIcon}
+                    />
+                    <ThemedText style={styles.submitButtonText}>
+                      Bắt đầu trải bài
+                    </ThemedText>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
             <ThemedView style={styles.spreadPositions}>
               {question.positions.map((position, index) => {
                 const selectedCard = selectedCards.find(c => c.position === index);
+                const card = selectedCard ? cards?.find(c => c._id === selectedCard.cardId) : null;
+                const isLastCard = index === question.positions.length - 1;
+                const isOddLastCard = isLastCard && question.positions.length % 2 !== 0;
+                
                 return (
-                  <TouchableOpacity
+                  <ThemedView 
                     key={index}
-                    style={[
-                      styles.positionCard,
-                      selectedCard && styles.positionCardSelected
-                    ]}
-                    onPress={() => handlePositionSelect(index)}
+                    style={isOddLastCard ? styles.lastCardWrapper : styles.cardWrapper}
                   >
-                    {selectedCard ? (
-                      <Image
-                        source={{ uri: cards?.find(c => c._id === selectedCard.cardId)?.imageUrl }}
-                        style={styles.selectedCardImage}
-                        resizeMode="contain"
-                      />
-                    ) : (
-                      <>
-                        <MaterialCommunityIcons
-                          name="cards"
-                          size={32}
-                          color="rgba(255,255,255,0.5)"
-                        />
-                        <ThemedText style={styles.positionNumber}>
-                          {index + 1}
-                        </ThemedText>
-                        <ThemedText style={styles.positionName}>
-                          {position.name}
-                        </ThemedText>
-                      </>
-                    )}
-                  </TouchableOpacity>
+                    <ThemedView
+                      style={[
+                        styles.positionCard,
+                        selectedCard && styles.positionCardSelected
+                      ]}
+                    >
+                      {card ? (
+                        <>
+                          <Image
+                            source={{ uri: card.imageUrl }}
+                            style={styles.selectedCardImage}
+                            resizeMode="contain"
+                          />
+                          <ThemedText style={styles.cardTitle}>
+                            {card.name}
+                          </ThemedText>
+                        </>
+                      ) : (
+                        <>
+                          <MaterialCommunityIcons
+                            name="cards"
+                            size={32}
+                            color="rgba(255,255,255,0.5)"
+                          />
+                          <ThemedText style={styles.positionNumber}>
+                            {index + 1}
+                          </ThemedText>
+                          <ThemedText style={styles.positionName}>
+                            {position.aspect}
+                          </ThemedText>
+                        </>
+                      )}
+                    </ThemedView>
+                  </ThemedView>
                 );
               })}
             </ThemedView>
 
             {selectedCards.length === question.positions.length && (
               <TouchableOpacity
-                style={styles.submitButton}
+                style={[styles.submitButton, { marginBottom: insets.bottom + 20 }]}
                 onPress={handleSubmit}
                 disabled={isAnalyzing}
               >
@@ -407,10 +517,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   questionContainer: {
-    padding: 16,
+    padding: 20,
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
-    marginBottom: 24,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   questionTitle: {
     fontSize: 18,
@@ -425,8 +536,18 @@ const styles = StyleSheet.create({
   spreadPositions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  cardWrapper: {
+    width: '50%',
+    paddingHorizontal: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  lastCardWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   positionCard: {
     width: CARD_WIDTH,
@@ -493,6 +614,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     marginTop: 24,
+    marginBottom: 16,
   },
   submitButtonText: {
     fontSize: 16,
@@ -547,8 +669,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
+    textAlign: 'center',
+    width: '100%',
   },
   resetButton: {
     marginBottom: 20,
+  },
+  shuffleButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    marginHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  shuffleIcon: {
+    marginRight: 8,
+  },
+  positionAspect: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loadingSubText: {
+    fontSize: 14,
+    opacity: 0.7,
+    textAlign: 'center',
   },
 }); 

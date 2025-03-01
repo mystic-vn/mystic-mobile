@@ -17,7 +17,7 @@ const api = axios.create({
 // Request interceptor - thêm token vào header
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   try {
-    const token = await SecureStore.getItemAsync('token');
+    const token = await SecureStore.getItemAsync('access_token');
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -31,10 +31,12 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   }
 });
 
-// Response interceptor - xử lý lỗi
+// Response interceptor - xử lý lỗi và refresh token
 api.interceptors.response.use(
   (response) => response.data,
   async (error: any) => {
+    const originalRequest = error.config;
+
     // Log error details để debug
     console.error('API Error:', {
       url: error.config?.url,
@@ -42,12 +44,40 @@ api.interceptors.response.use(
       data: error.response?.data,
     });
 
-    // Nếu lỗi 401, xóa token và điều hướng về trang đăng nhập
-    if (error.response?.status === 401) {
-      await SecureStore.deleteItemAsync('token');
-      // TODO: Điều hướng về trang đăng nhập
-      console.error('Unauthorized access. Please login again.');
+    // Nếu lỗi 401 và chưa thử refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = await SecureStore.getItemAsync('refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token found');
+        }
+
+        // Gọi API refresh token
+        const response = await axios.post(`${baseURL}/auth/refresh`, {
+          refresh_token: refreshToken,
+        });
+
+        const { access_token, refresh_token } = response.data;
+
+        // Lưu token mới
+        await SecureStore.setItemAsync('access_token', access_token);
+        await SecureStore.setItemAsync('refresh_token', refresh_token);
+
+        // Cập nhật token cho request gốc và thử lại
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Nếu refresh token thất bại, xóa token và điều hướng về trang đăng nhập
+        await SecureStore.deleteItemAsync('access_token');
+        await SecureStore.deleteItemAsync('refresh_token');
+        await SecureStore.deleteItemAsync('user');
+        console.error('Token refresh failed. Please login again.');
+        // TODO: Điều hướng về trang đăng nhập
+      }
     }
+
     return Promise.reject(error);
   }
 );
