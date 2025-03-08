@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, View } from 'react-native';
-import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, TouchableOpacity, Image, View, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
 import { ThemedTextInput } from '@/components/ui/ThemedTextInput';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import api from '@/constants/api';
 
 interface User {
   id: string;
@@ -20,13 +19,10 @@ interface User {
 
 export default function EditProfileScreen() {
   const [user, setUser] = useState<User | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-  });
 
   useEffect(() => {
     loadUserData();
@@ -38,41 +34,20 @@ export default function EditProfileScreen() {
       if (userStr) {
         const userData = JSON.parse(userStr);
         setUser(userData);
-        setFormData({
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-        });
+        setFirstName(userData.firstName);
+        setLastName(userData.lastName);
+        setEmail(userData.email);
       }
     } catch (error) {
       console.error('Error loading user:', error);
-      setError('Không thể tải thông tin người dùng');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleSave = async () => {
-    try {
-      setSaving(true);
-      setError('');
-
-      const response = await api.put<any, User>('/users/me', formData);
-      
-      // Cập nhật thông tin user trong AsyncStorage
-      const updatedUser = { ...user, ...response };
-      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      router.back();
-    } catch (err: any) {
-      console.error('Update error:', err);
-      setError(err.message || 'Không thể cập nhật thông tin');
-    } finally {
-      setSaving(false);
-    }
+    // Xử lý lưu thông tin
+    router.back();
   };
 
   if (loading) {
@@ -84,105 +59,123 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header cố định */}
-      <View style={styles.stickyHeader}>
-        <LinearGradient colors={['#4a2b7e', '#2d1b4f']} style={styles.header}>
-          <ThemedView style={styles.headerContent}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <IconSymbol name="chevron.left" size={24} color="#fff" />
-            </TouchableOpacity>
-            <ThemedText style={styles.title}>Thông tin cá nhân</ThemedText>
-          </ThemedView>
-        </LinearGradient>
-      </View>
-
-      {/* Phần nội dung có thể cuộn */}
-      <ScrollView style={styles.scrollContent}>
-        <ThemedView style={styles.formContainer}>
-          {error ? (
-            <ThemedText style={styles.errorText}>{error}</ThemedText>
-          ) : null}
-
-          <ThemedView style={styles.inputGroup}>
-            <ThemedText style={styles.label}>Email</ThemedText>
-            <ThemedTextInput
-              value={user?.email}
-              editable={false}
-              style={[styles.input, styles.disabledInput]}
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputGroup}>
-            <ThemedText style={styles.label}>Họ</ThemedText>
-            <ThemedTextInput
-              value={formData.lastName}
-              onChangeText={(value) => handleChange('lastName', value)}
-              style={styles.input}
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.inputGroup}>
-            <ThemedText style={styles.label}>Tên</ThemedText>
-            <ThemedTextInput
-              value={formData.firstName}
-              onChangeText={(value) => handleChange('firstName', value)}
-              style={styles.input}
-            />
-          </ThemedView>
-
-          <TouchableOpacity
-            style={[styles.saveButton, saving && styles.buttonDisabled]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            <ThemedText style={styles.saveButtonText}>
-              {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
-            </ThemedText>
+    <ScrollView style={styles.container}>
+      <LinearGradient 
+        colors={['#2D1B69', '#4A1B6D', '#1F1135']} 
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatarGlow} />
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.avatar}
+          />
+          <TouchableOpacity style={styles.editAvatarButton}>
+            <IconSymbol name="camera.fill" size={20} color="#fff" />
           </TouchableOpacity>
-        </ThemedView>
-      </ScrollView>
-    </View>
+        </View>
+      </LinearGradient>
+
+      <ThemedView style={styles.formContainer}>
+        <View style={styles.inputGroup}>
+          <ThemedText style={styles.label}>Họ</ThemedText>
+          <ThemedTextInput
+            value={lastName}
+            onChangeText={setLastName}
+            style={styles.input}
+            placeholder="Nhập họ của bạn"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <ThemedText style={styles.label}>Tên</ThemedText>
+          <ThemedTextInput
+            value={firstName}
+            onChangeText={setFirstName}
+            style={styles.input}
+            placeholder="Nhập tên của bạn"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <ThemedText style={styles.label}>Email</ThemedText>
+          <ThemedTextInput
+            value={email}
+            onChangeText={setEmail}
+            style={styles.input}
+            placeholder="Nhập email của bạn"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <TouchableOpacity 
+          style={styles.saveButton}
+          onPress={handleSave}
+        >
+          <LinearGradient
+            colors={['#9f7aea', '#7c3aed']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.saveButtonGradient}
+          >
+            <ThemedText style={styles.saveButtonText}>Lưu thay đổi</ThemedText>
+          </LinearGradient>
+        </TouchableOpacity>
+      </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  stickyHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
   header: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  headerContent: {
-    flexDirection: 'row',
+    padding: 30,
     alignItems: 'center',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-  backButton: {
-    marginRight: 15,
+  avatarContainer: {
+    position: 'relative',
+    marginBottom: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    lineHeight: 30,
+  avatarGlow: {
+    position: 'absolute',
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: 'rgba(159,122,234,0.2)',
+    top: -5,
+    left: -5,
   },
-  scrollContent: {
-    flex: 1,
-    marginTop: 120, // Để tránh bị che bởi header
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: 'rgba(159,122,234,0.3)',
+  },
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#9f7aea',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   formContainer: {
     padding: 20,
@@ -191,35 +184,41 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
+    color: '#9f7aea',
     marginBottom: 8,
+    fontWeight: '600',
   },
   input: {
-    marginBottom: 0,
-  },
-  disabledInput: {
-    opacity: 0.7,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(159,122,234,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(159,122,234,0.2)',
+    borderRadius: 12,
+    padding: 15,
+    color: '#fff',
+    fontSize: 16,
   },
   saveButton: {
-    backgroundColor: '#9f7aea',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
+    marginTop: 30,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  buttonDisabled: {
-    opacity: 0.7,
+  saveButtonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  errorText: {
-    color: '#ff4757',
-    textAlign: 'center',
-    marginBottom: 15,
   },
 }); 

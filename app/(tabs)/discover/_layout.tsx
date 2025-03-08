@@ -51,7 +51,6 @@ export default React.memo(function DiscoverLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: 'Khám phá',
             headerShown: false,
           }}
         />

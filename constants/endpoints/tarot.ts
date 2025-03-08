@@ -1,4 +1,5 @@
 import api from '../api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -102,6 +103,31 @@ export interface ReadingAnalysis {
   __v: number;
 }
 
+export interface Context {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export const tarotEndpoints = {
+  getContext: async (id: string): Promise<Context> => {
+    return api.get<Context>(`/tarot/contexts/${id}`);
+  },
+  
+  // Thêm các endpoints khác nếu cần
+  getContexts: async (): Promise<Context[]> => {
+    return api.get<Context[]>('/tarot/contexts');
+  },
+  
+  getCards: async () => {
+    return api.get('/tarot/cards');
+  },
+  
+  getCard: async (id: string) => {
+    return api.get(`/tarot/cards/${id}`);
+  },
+};
+
 export const tarotApi = {
   contexts: {
     getAll: async (): Promise<TarotContext[]> => {
@@ -145,7 +171,12 @@ export const tarotApi = {
       questionId?: string;
       cards: { cardId: string; position: number; aspect: string; isReversed: boolean; }[];
     }): Promise<ReadingAnalysis> => {
-      return api.post('/tarot-reading/analysis', data);
+      const userStr = await AsyncStorage.getItem('user');
+      if (!userStr) {
+        throw new Error('User not found');
+      }
+      const user = JSON.parse(userStr);
+      return api.post(`/tarot-reading/analysis/user/${user.id}`, data);
     },
     getById: async (id: string): Promise<ReadingAnalysis> => {
       return api.get(`/tarot-reading/analysis/${id}`);

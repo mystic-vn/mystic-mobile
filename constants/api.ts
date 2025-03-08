@@ -1,12 +1,12 @@
-import axios, { InternalAxiosRequestConfig } from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import axios, { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // Xác định baseURL dựa trên platform và môi trường
 const baseURL = Platform.select({
-  ios: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.6:3001',
-  android: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.6:3001',
-  default: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.6:3001',
+  ios: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.39:3001',
+  android: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.39:3001',
+  default: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.39:3001',
 });
 
 const api = axios.create({
@@ -17,7 +17,7 @@ const api = axios.create({
 // Request interceptor - thêm token vào header
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   try {
-    const token = await SecureStore.getItemAsync('access_token');
+    const token = await AsyncStorage.getItem('access_token');
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -33,7 +33,10 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 
 // Response interceptor - xử lý lỗi và refresh token
 api.interceptors.response.use(
-  (response) => response.data,
+  (response: AxiosResponse) => {
+    // Trả về response.data thay vì toàn bộ response
+    return response.data;
+  },
   async (error: any) => {
     const originalRequest = error.config;
 
@@ -49,7 +52,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await SecureStore.getItemAsync('refresh_token');
+        const refreshToken = await AsyncStorage.getItem('refresh_token');
         if (!refreshToken) {
           throw new Error('No refresh token found');
         }
@@ -62,19 +65,18 @@ api.interceptors.response.use(
         const { access_token, refresh_token } = response.data;
 
         // Lưu token mới
-        await SecureStore.setItemAsync('access_token', access_token);
-        await SecureStore.setItemAsync('refresh_token', refresh_token);
+        await AsyncStorage.setItem('access_token', access_token);
+        await AsyncStorage.setItem('refresh_token', refresh_token);
 
         // Cập nhật token cho request gốc và thử lại
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return api(originalRequest);
       } catch (refreshError) {
         // Nếu refresh token thất bại, xóa token và điều hướng về trang đăng nhập
-        await SecureStore.deleteItemAsync('access_token');
-        await SecureStore.deleteItemAsync('refresh_token');
-        await SecureStore.deleteItemAsync('user');
+        await AsyncStorage.removeItem('access_token');
+        await AsyncStorage.removeItem('refresh_token');
+        await AsyncStorage.removeItem('user');
         console.error('Token refresh failed. Please login again.');
-        // TODO: Điều hướng về trang đăng nhập
       }
     }
 
@@ -82,4 +84,15 @@ api.interceptors.response.use(
   }
 );
 
-export default api; 
+// Tạo kiểu mới cho instance axios
+type ApiInstance = {
+  get<T = any>(url: string, config?: any): Promise<T>;
+  post<T = any>(url: string, data?: any, config?: any): Promise<T>;
+  put<T = any>(url: string, data?: any, config?: any): Promise<T>;
+  delete<T = any>(url: string, config?: any): Promise<T>;
+};
+
+// Cast instance axios sang kiểu mới
+const typedApi = api as unknown as ApiInstance;
+
+export default typedApi; 

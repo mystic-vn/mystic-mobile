@@ -1,162 +1,128 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
+import { StyleSheet, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function PrivacyScreen() {
   return (
-    <View style={styles.container}>
-      {/* Header cố định */}
-      <View style={styles.stickyHeader}>
-        <LinearGradient colors={['#4a2b7e', '#2d1b4f']} style={styles.header}>
-          <ThemedView style={styles.headerContent}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <IconSymbol name="chevron.left" size={24} color="#fff" />
-            </TouchableOpacity>
-            <ThemedText style={styles.title}>Chính sách bảo mật</ThemedText>
-          </ThemedView>
-        </LinearGradient>
-      </View>
-
-      {/* Phần nội dung có thể cuộn */}
-      <ScrollView style={styles.scrollContent}>
+    <LinearGradient
+      colors={['#2D1B69', '#4A1B6D', '#1F1135']}
+      style={styles.container}
+    >
+      <ScrollView style={styles.scrollView}>
         <ThemedView style={styles.content}>
-          <Section title="1. Thông tin chúng tôi thu thập">
-            <Paragraph>
-              Khi bạn sử dụng Mystic, chúng tôi có thể thu thập các thông tin sau:{'\n\n'}
-              - Thông tin cá nhân: tên, email, và các thông tin đăng ký{'\n'}
-              - Thông tin thiết bị: loại thiết bị, hệ điều hành{'\n'}
-              - Dữ liệu sử dụng: lịch sử tìm kiếm, tương tác với ứng dụng{'\n'}
-              - Thông tin vị trí (nếu được cho phép)
-            </Paragraph>
-          </Section>
+          
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>1. Thu thập thông tin</ThemedText>
+            <ThemedText style={styles.text}>
+              Chúng tôi thu thập các thông tin sau khi bạn cung cấp:{'\n\n'}
+              • Thông tin cá nhân: tên, email{'\n'}
+              • Thông tin thiết bị và trình duyệt{'\n'}
+              • Lịch sử tra cứu và tương tác{'\n'}
+              • Dữ liệu phân tích việc sử dụng ứng dụng
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="2. Cách chúng tôi sử dụng thông tin">
-            <Paragraph>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>2. Sử dụng thông tin</ThemedText>
+            <ThemedText style={styles.text}>
               Chúng tôi sử dụng thông tin thu thập để:{'\n\n'}
-              - Cung cấp và cải thiện dịch vụ{'\n'}
-              - Cá nhân hóa trải nghiệm người dùng{'\n'}
-              - Gửi thông báo về cập nhật và tính năng mới{'\n'}
-              - Phân tích và tối ưu hóa hiệu suất ứng dụng
-            </Paragraph>
-          </Section>
+              • Cung cấp và cải thiện dịch vụ{'\n'}
+              • Cá nhân hóa trải nghiệm người dùng{'\n'}
+              • Gửi thông báo về cập nhật và tính năng mới{'\n'}
+              • Phân tích và tối ưu hiệu suất ứng dụng
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="3. Bảo mật thông tin">
-            <Paragraph>
-              Mystic cam kết bảo vệ thông tin của người dùng bằng các biện pháp bảo mật tiên tiến. Chúng tôi sử dụng mã hóa SSL/TLS cho việc truyền tải dữ liệu và lưu trữ thông tin an toàn trên máy chủ được bảo vệ.
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>3. Bảo mật thông tin</ThemedText>
+            <ThemedText style={styles.text}>
+              Chúng tôi cam kết bảo vệ thông tin của bạn bằng các biện pháp bảo mật tiên tiến. Tất cả dữ liệu được mã hóa và lưu trữ an toàn trên máy chủ được bảo vệ.
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="4. Chia sẻ thông tin">
-            <Paragraph>
-              Chúng tôi không bán hoặc cho thuê thông tin cá nhân của bạn. Thông tin chỉ được chia sẻ trong các trường hợp:{'\n\n'}
-              - Khi có yêu cầu pháp lý{'\n'}
-              - Với các đối tác cung cấp dịch vụ (có cam kết bảo mật){'\n'}
-              - Khi được sự đồng ý của bạn
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>4. Chia sẻ thông tin</ThemedText>
+            <ThemedText style={styles.text}>
+              Chúng tôi không bán, trao đổi hoặc chuyển giao thông tin cá nhân của bạn cho bên thứ ba. Thông tin chỉ được chia sẻ khi:{'\n\n'}
+              • Được sự đồng ý của bạn{'\n'}
+              • Cần thiết để cung cấp dịch vụ{'\n'}
+              • Theo yêu cầu của pháp luật
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="5. Quyền của người dùng">
-            <Paragraph>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>5. Quyền của người dùng</ThemedText>
+            <ThemedText style={styles.text}>
               Bạn có quyền:{'\n\n'}
-              - Truy cập và chỉnh sửa thông tin cá nhân{'\n'}
-              - Yêu cầu xóa tài khoản{'\n'}
-              - Từ chối nhận thông báo marketing{'\n'}
-              - Yêu cầu báo cáo về dữ liệu của bạn
-            </Paragraph>
-          </Section>
+              • Truy cập thông tin cá nhân{'\n'}
+              • Yêu cầu chỉnh sửa thông tin{'\n'}
+              • Xóa tài khoản và dữ liệu{'\n'}
+              • Từ chối nhận thông báo marketing
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="6. Cookie và công nghệ theo dõi">
-            <Paragraph>
-              Chúng tôi sử dụng cookie và các công nghệ tương tự để cải thiện trải nghiệm người dùng và thu thập dữ liệu phân tích. Bạn có thể kiểm soát việc sử dụng cookie trong cài đặt ứng dụng.
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>6. Liên hệ</ThemedText>
+            <ThemedText style={styles.text}>
+              Nếu bạn có thắc mắc về chính sách bảo mật, vui lòng liên hệ:{'\n'}
+              Email: privacy@mystic.vn{'\n'}
+              Điện thoại: 1900 xxxx
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="7. Thay đổi chính sách">
-            <Paragraph>
-              Chúng tôi có thể cập nhật chính sách này theo thời gian. Khi có thay đổi quan trọng, chúng tôi sẽ thông báo cho bạn qua email hoặc thông báo trong ứng dụng.
-            </Paragraph>
-          </Section>
-
-          <ThemedText style={styles.lastUpdate}>
-            Cập nhật lần cuối: 22/02/2024
+          <ThemedText style={styles.updateDate}>
+            Cập nhật lần cuối: 15/03/2024
           </ThemedText>
         </ThemedView>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <ThemedView style={styles.section}>
-    <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
-    {children}
-  </ThemedView>
-);
-
-const Paragraph = ({ children }: { children: React.ReactNode }) => (
-  <ThemedText style={styles.paragraph}>{children}</ThemedText>
-);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
   },
-  stickyHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    lineHeight: 30,
-  },
-  scrollContent: {
+  scrollView: {
     flex: 1,
-    marginTop: 120, // Để tránh bị che bởi header
   },
   content: {
     padding: 20,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
   section: {
-    marginBottom: 25,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(159,122,234,0.2)',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#9f7aea',
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  paragraph: {
+  text: {
     fontSize: 15,
-    lineHeight: 22,
     color: 'rgba(255,255,255,0.8)',
+    lineHeight: 24,
   },
-  lastUpdate: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
+  updateDate: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
     marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 40,
   },
 }); 

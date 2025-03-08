@@ -1,147 +1,114 @@
 import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
+import { StyleSheet, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { ThemedText } from '@/components/ThemedText';
 
 export default function TermsScreen() {
   return (
-    <View style={styles.container}>
-      {/* Header cố định */}
-      <View style={styles.stickyHeader}>
-        <LinearGradient colors={['#4a2b7e', '#2d1b4f']} style={styles.header}>
-          <ThemedView style={styles.headerContent}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <IconSymbol name="chevron.left" size={24} color="#fff" />
-            </TouchableOpacity>
-            <ThemedText style={styles.title}>Điều khoản sử dụng</ThemedText>
-          </ThemedView>
-        </LinearGradient>
-      </View>
-
-      {/* Phần nội dung có thể cuộn */}
-      <ScrollView style={styles.scrollContent}>
+    <LinearGradient
+      colors={['#2D1B69', '#4A1B6D', '#1F1135']}
+      style={styles.container}
+    >
+      <ScrollView style={styles.scrollView}>
         <ThemedView style={styles.content}>
-          <Section title="1. Giới thiệu">
-            <Paragraph>
-              Chào mừng bạn đến với Mystic - nền tảng học tập và tra cứu thông tin. Bằng việc truy cập và sử dụng ứng dụng, bạn đồng ý tuân thủ các điều khoản và điều kiện được quy định dưới đây.
-            </Paragraph>
-          </Section>
+          
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>1. Giới thiệu</ThemedText>
+            <ThemedText style={styles.text}>
+              Chào mừng bạn đến với Mystic - ứng dụng tra cứu Tarot. Bằng việc truy cập và sử dụng ứng dụng của chúng tôi, bạn đồng ý tuân thủ và chịu ràng buộc bởi các điều khoản và điều kiện sau đây.
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="2. Tài khoản người dùng">
-            <Paragraph>
-              - Bạn phải đăng ký tài khoản để sử dụng đầy đủ tính năng của ứng dụng{'\n'}
-              - Bạn có trách nhiệm bảo mật thông tin tài khoản của mình{'\n'}
-              - Không được chia sẻ tài khoản cho người khác sử dụng{'\n'}
-              - Mystic có quyền khóa tài khoản nếu phát hiện vi phạm
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>2. Điều kiện sử dụng</ThemedText>
+            <ThemedText style={styles.text}>
+              • Bạn phải từ 16 tuổi trở lên để sử dụng ứng dụng{'\n'}
+              • Bạn đồng ý cung cấp thông tin chính xác khi đăng ký{'\n'}
+              • Bạn chịu trách nhiệm bảo mật tài khoản của mình{'\n'}
+              • Không được sử dụng ứng dụng cho mục đích bất hợp pháp
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="3. Quyền sở hữu trí tuệ">
-            <Paragraph>
-              Tất cả nội dung trên ứng dụng Mystic bao gồm văn bản, hình ảnh, biểu tượng, và các tài liệu khác đều thuộc quyền sở hữu của Mystic hoặc các đối tác cung cấp nội dung. Nghiêm cấm sao chép, phân phối mà không được sự cho phép.
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>3. Quyền sở hữu trí tuệ</ThemedText>
+            <ThemedText style={styles.text}>
+              Tất cả nội dung trong ứng dụng bao gồm hình ảnh, văn bản, biểu tượng và phần mềm đều thuộc quyền sở hữu của Mystic. Bạn không được sao chép, phân phối hoặc sử dụng cho mục đích thương mại mà không có sự cho phép bằng văn bản.
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="4. Quy định sử dụng">
-            <Paragraph>
-              - Không đăng tải nội dung vi phạm pháp luật{'\n'}
-              - Không quấy rối hoặc có hành vi tiêu cực với người dùng khác{'\n'}
-              - Không tải, chia sẻ malware hoặc virus{'\n'}
-              - Không khai thác lỗ hổng của hệ thống
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>4. Giới hạn trách nhiệm</ThemedText>
+            <ThemedText style={styles.text}>
+              Mystic cung cấp dịch vụ "nguyên trạng" và không đảm bảo tính chính xác tuyệt đối của các kết quả tra cứu. Chúng tôi không chịu trách nhiệm về bất kỳ quyết định nào của bạn dựa trên thông tin từ ứng dụng.
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="5. Giới hạn trách nhiệm">
-            <Paragraph>
-              Mystic không chịu trách nhiệm về bất kỳ thiệt hại nào phát sinh từ việc sử dụng hoặc không thể sử dụng dịch vụ, bao gồm thiệt hại trực tiếp, gián tiếp, ngẫu nhiên, đặc biệt hoặc mang tính hệ quả.
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>5. Thay đổi điều khoản</ThemedText>
+            <ThemedText style={styles.text}>
+              Chúng tôi có quyền thay đổi các điều khoản này vào bất kỳ lúc nào. Việc tiếp tục sử dụng ứng dụng sau khi thay đổi đồng nghĩa với việc bạn chấp nhận các điều khoản mới.
+            </ThemedText>
+          </ThemedView>
 
-          <Section title="6. Thay đổi điều khoản">
-            <Paragraph>
-              Mystic có quyền thay đổi các điều khoản này vào bất kỳ lúc nào. Chúng tôi sẽ thông báo cho người dùng về những thay đổi quan trọng qua email hoặc thông báo trong ứng dụng.
-            </Paragraph>
-          </Section>
+          <ThemedView style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>6. Liên hệ</ThemedText>
+            <ThemedText style={styles.text}>
+              Nếu bạn có bất kỳ câu hỏi nào về các điều khoản này, vui lòng liên hệ với chúng tôi qua email: support@mystic.vn
+            </ThemedText>
+          </ThemedView>
 
-          <ThemedText style={styles.lastUpdate}>
-            Cập nhật lần cuối: 22/02/2024
+          <ThemedText style={styles.updateDate}>
+            Cập nhật lần cuối: 15/03/2024
           </ThemedText>
         </ThemedView>
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <ThemedView style={styles.section}>
-    <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
-    {children}
-  </ThemedView>
-);
-
-const Paragraph = ({ children }: { children: React.ReactNode }) => (
-  <ThemedText style={styles.paragraph}>{children}</ThemedText>
-);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
   },
-  stickyHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButton: {
-    marginRight: 15,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    lineHeight: 30,
-  },
-  scrollContent: {
+  scrollView: {
     flex: 1,
-    marginTop: 120, // Để tránh bị che bởi header
   },
   content: {
     padding: 20,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
   section: {
-    marginBottom: 25,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(159,122,234,0.2)',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#9f7aea',
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  paragraph: {
+  text: {
     fontSize: 15,
-    lineHeight: 22,
     color: 'rgba(255,255,255,0.8)',
+    lineHeight: 24,
   },
-  lastUpdate: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
+  updateDate: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.4)',
     textAlign: 'center',
     marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 40,
   },
 }); 

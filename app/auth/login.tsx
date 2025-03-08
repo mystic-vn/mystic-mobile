@@ -41,8 +41,11 @@ export default function LoginScreen() {
         password,
       });
       
-      await AsyncStorage.setItem('access_token', response.access_token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.user));
+      await Promise.all([
+        AsyncStorage.setItem('access_token', response.access_token),
+        AsyncStorage.setItem('user', JSON.stringify(response.user)),
+        AsyncStorage.setItem('userId', response.user.id)
+      ]);
       
       router.replace('/(tabs)/profile');
     } catch (err: any) {

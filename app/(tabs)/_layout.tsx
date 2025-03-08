@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import * as React from 'react';
 import { Platform, Image, View, StyleSheet } from 'react-native';
+import type { TextStyle } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -21,17 +22,11 @@ export default function TabLayout() {
 
   // Memoize styles để tránh tính toán lại
   const tabBarStyle = React.useMemo(() => ({
-    backgroundColor: 'rgba(52, 0, 51, 0.5)',
+    backgroundColor: '#1F1135',
     borderTopWidth: 0,
-    ...(Platform.OS === 'ios' ? {
-      position: 'absolute' as const,
-      height: 85,
-      paddingBottom: 20,
-    } : {
-      height: 70,
-      paddingTop: 8,
-      paddingBottom: 8,
-    }),
+    height: Platform.OS === 'ios' ? 90 : 70,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 15,
+    paddingTop: 10,
   }), []);
 
   // Memoize logo component để tránh re-render
@@ -46,11 +41,13 @@ export default function TabLayout() {
   ), []);
 
   const screenOptions = React.useMemo(() => ({
+    headerStyle: {
+      backgroundColor: '#2D1B69',
+    },
+    headerTintColor: '#fff',
+    headerShadowVisible: false,
     tabBarActiveTintColor: '#9f7aea',
-    tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
-    headerShown: false,
-    tabBarButton: HapticTab,
-    tabBarBackground: TabBarBackground,
+    tabBarInactiveTintColor: '#666',
     tabBarStyle,
     tabBarIconStyle: {
       marginTop: Platform.OS === 'ios' ? undefined : 0,
@@ -67,6 +64,7 @@ export default function TabLayout() {
         name="discover"
         options={{
           title: 'Khám phá',
+          headerShown: false,
           tabBarIcon: ({ color }: TabBarIconProps) => (
             <View style={styles.iconWrapper}>
               <IconSymbol size={24} name="sparkles" color={color || '#fff'} />
@@ -89,6 +87,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: '',
+          headerShown: false,
           tabBarIcon: LogoIcon,
         }}
       />
@@ -106,7 +105,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Tôi',
+          title: 'Hồ sơ',
+          headerShown: false,
           tabBarIcon: ({ color }: TabBarIconProps) => (
             <View style={styles.iconWrapper}>
               <IconSymbol size={24} name="person.fill" color={color || '#fff'} />
